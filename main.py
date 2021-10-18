@@ -7,6 +7,9 @@
     Python Version: 3.9.5
 """
 
+# Module Imports
+import math
+
 import pygame
 import sys
 from pygame.locals import *
@@ -16,11 +19,11 @@ from pygame.locals import *
 SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 600
 PADDLE_WIDTH = 100
-PADDING = 20
+PADDING = 5
 
 # Movement Initializers
 
-SPEED = 5
+SPEED = 10
 L_DOWN = False
 R_DOWN = False
 
@@ -33,27 +36,30 @@ class Paddle(object):
         self.y = y
 
     def draw(self):
-        pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(self.x, self.y, PADDLE_WIDTH, 10))
+        pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(math.floor(self.x), math.floor(self.y), PADDLE_WIDTH, 10))
 
     def move(self, d):
-        self.x += d / SPEED
+        if d and self.x > 0:
+            self.x -= 1 / SPEED
+        if not d and self.x < SCREEN_WIDTH - PADDLE_WIDTH:
+            self.x += 1 / SPEED
 
 
 # Game Initialization
 
 pygame.init()
 screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
-paddle = Paddle((SCREEN_WIDTH - PADDLE_WIDTH) / 2, SCREEN_HEIGHT - PADDING)
+paddle = Paddle((SCREEN_WIDTH - PADDLE_WIDTH) / 2, SCREEN_HEIGHT - PADDING * 10)
 
 
 # Game Loop
 
 def move_left():
-    paddle.move(-1)
+    paddle.move(True)
 
 
 def move_right():
-    paddle.move(1)
+    paddle.move(False)
 
 
 def check_movement():
