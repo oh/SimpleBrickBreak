@@ -41,7 +41,8 @@ class Paddle(object):
         self.y = y
 
     def draw(self):
-        pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(int(self.x), int(self.y), PADDLE_WIDTH, 10))
+        self.rect = pygame.Rect(int(self.x), int(self.y), PADDLE_WIDTH, 10)
+        pygame.draw.rect(screen, (255, 0, 0), self.rect)
 
     def move(self, d):
         if d and self.x > 0:
@@ -55,7 +56,7 @@ class Ball(object):
         self.x = x
         self.y = y
         self.vx = random.randint(-5, 5) / 10
-        self.vy = 3/SPEED
+        self.vy = 10/SPEED
 
     def draw(self):
         pygame.draw.circle(screen, (155, 155, 255), (int(self.x), int(self.y)), BALL_R)
@@ -63,13 +64,22 @@ class Ball(object):
     def update(self):
         # self.print_info()
 
+        # Bottom of the screen
+
         if self.y >= SCREEN_HEIGHT - BALL_R:
             pygame.quit()
             sys.exit()
 
+        # All other walls
+
         if not BALL_R < int(self.x) < SCREEN_WIDTH - BALL_R:
             self.vx *= -1
         if not BALL_R < int(self.y) < SCREEN_HEIGHT - BALL_R:
+            self.vy *= -1
+
+        # Paddle
+
+        if paddle.rect.collidepoint(ball.x, ball.y + BALL_R):
             self.vy *= -1
 
         self.y += self.vy / SPEED
