@@ -91,12 +91,27 @@ class Ball(object):
         print("x: " + str(self.x), "\ny: " + str(self.y), "\nvx: " + str(self.vx), "\nvy: " + str(self.vy) + "\n" * 20)
 
 
+class Brick(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.rect = pygame.Rect(self.x, self.y, 70, 30)
+
+    def draw(self, c):
+        pygame.draw.rect(screen, c, self.rect)
+
+    def update(self, s):
+        self.draw((255, 255, 255) if s else 0)
+        brick_array.remove(self)
+
+
 # Game Initialization
 
 pygame.init()
 screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
 paddle = Paddle((SCREEN_WIDTH - PADDLE_WIDTH) / 2, SCREEN_HEIGHT - PADDING * 10)
 ball = Ball(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+brick_array = [Brick(PADDING, PADDING)]
 
 
 # Game Loop
@@ -129,4 +144,11 @@ while True:
     screen.fill(0)
     paddle.draw()
     ball.update()
+    for brick in brick_array:
+        brick.update(1)
+
+        if brick.rect.collidepoint(ball.x, ball.y - BALL_R) or brick.rect.collidepoint(ball.x + BALL_R, ball.y) or brick.rect.collidepoint(ball.x, ball.y + BALL_R) or brick.rect.collidepoint(ball.x - BALL_R, ball.y):
+            brick.update(0)
+
+
     pygame.display.flip()
