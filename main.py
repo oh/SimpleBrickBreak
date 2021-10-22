@@ -11,7 +11,6 @@
 # Module Imports
 
 import random
-import os
 import pygame
 import sys
 from pygame.locals import *
@@ -23,7 +22,11 @@ SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 600
 PADDLE_WIDTH = 100
 BALL_R = 10
-PADDING = 5
+PADDING = 1
+BRICK_W = 30
+BRICK_H = 10
+N_BRICK_W = SCREEN_WIDTH / (BRICK_W + PADDING)
+N_BRICK_H = (SCREEN_HEIGHT / 3) / (BRICK_H + PADDING)
 
 
 # Movement Initializers
@@ -77,7 +80,7 @@ class Ball(object):
         if not BALL_R < int(self.y) < SCREEN_HEIGHT - BALL_R:
             self.vy *= -1
 
-        # Paddle
+        # Paddle Collision
 
         if paddle.rect.collidepoint(ball.x, ball.y + BALL_R):
             self.vy *= -1
@@ -95,23 +98,38 @@ class Brick(object):
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.rect = pygame.Rect(self.x, self.y, 70, 30)
+        self.rect = pygame.Rect(self.x, self.y, BRICK_W, BRICK_H)
 
     def draw(self, c):
         pygame.draw.rect(screen, c, self.rect)
 
-    def update(self, s):
-        self.draw((255, 255, 255) if s else 0)
-        brick_array.remove(self)
+    def update(self):
+        # Brick Collision
+
+        if self.rect.collidepoint(ball.x, ball.y - BALL_R) or self.rect.collidepoint(ball.x, ball.y + BALL_R):
+            ball.vy *= -1
+            brick_array.remove(self)
+        if self.rect.collidepoint(ball.x - BALL_R, ball.y) or self.rect.collidepoint(ball.x + BALL_R, ball.y):
+            ball.vx *= -1
+            brick_array.remove(self)
+
+        self.draw((255, 255, 255))
 
 
 # Game Initialization
 
 pygame.init()
 screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
-paddle = Paddle((SCREEN_WIDTH - PADDLE_WIDTH) / 2, SCREEN_HEIGHT - PADDING * 10)
+paddle = Paddle((SCREEN_WIDTH - PADDLE_WIDTH) / 2, SCREEN_HEIGHT - 50)
 ball = Ball(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-brick_array = [Brick(PADDING, PADDING)]
+brick_array = []
+
+print(int(SCREEN_WIDTH / (N_BRICK_W + PADDING)),
+      int((SCREEN_HEIGHT / 3) / (N_BRICK_H + PADDING)))
+
+for x in range(int(N_BRICK_W) + 1):
+    for y in range(int(N_BRICK_H)):
+        brick_array.append(Brick(x * (BRICK_W + PADDING), y * (BRICK_H + PADDING)))
 
 
 # Game Loop
@@ -145,10 +163,6 @@ while True:
     paddle.draw()
     ball.update()
     for brick in brick_array:
-        brick.update(1)
-
-        if brick.rect.collidepoint(ball.x, ball.y - BALL_R) or brick.rect.collidepoint(ball.x + BALL_R, ball.y) or brick.rect.collidepoint(ball.x, ball.y + BALL_R) or brick.rect.collidepoint(ball.x - BALL_R, ball.y):
-            brick.update(0)
-
+        brick.update()
 
     pygame.display.flip()
