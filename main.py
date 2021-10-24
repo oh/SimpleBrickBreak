@@ -3,7 +3,7 @@
     File name: main.py
     Author: Hunter Webb
     Date created: 10/18/2021
-    Date last modified: 10/18/2021
+    Date last modified: 10/24/2021
     Python Version: 3.9.5
 """
 
@@ -13,14 +13,33 @@ import random
 import pygame
 import sys
 from pygame.locals import *
+from pygame import gfxdraw
 
 # Constants
 
+GAME_OVER = 0
+
+SOLID = 0
+SINGLE = 1
+DOUBLE = 2
+TRAIL = 3
+EXTRA_LIFE = 4
+
+COLORS = [
+    pygame.Color("#000814"),  # SOLID
+    pygame.Color("#9e2a2b"),  # SINGLE
+    pygame.Color("#540b0e"),  # DOUBLE
+    pygame.Color("#6d597a"),  # TRAIL
+    pygame.Color("#80b918")  # EXTRA_LIFE
+]
+
 SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 600
+
+PADDING = 1
+
 PADDLE_WIDTH = 100
 BALL_R = 10
-PADDING = 1
 BRICK_W = 80
 BRICK_H = 30
 N_BRICK_W = SCREEN_WIDTH / (BRICK_W + PADDING)
@@ -28,7 +47,7 @@ N_BRICK_H = (SCREEN_HEIGHT / 3) / (BRICK_H + PADDING)
 
 # Movement Initializers
 
-SPEED = 10
+SPEED = 2
 L_DOWN = False
 R_DOWN = False
 
@@ -42,13 +61,13 @@ class Paddle(object):
 
     def draw(self):
         self.rect = pygame.Rect(int(self.x), int(self.y), PADDLE_WIDTH, 10)
-        pygame.draw.rect(screen, (255, 0, 0), self.rect)
+        pygame.gfxdraw.box(screen, self.rect, pygame.Color("#bee9e8"))
 
     def move(self, d):
         if d and self.x > 0:
-            self.x -= 1 / SPEED
+            self.x -= SPEED
         if not d and self.x < SCREEN_WIDTH - PADDLE_WIDTH:
-            self.x += 1 / SPEED
+            self.x += SPEED
 
 
 class Ball(object):
@@ -59,15 +78,15 @@ class Ball(object):
         self.vy = 10 / SPEED
 
     def draw(self):
-        pygame.draw.circle(screen, (155, 155, 255), (int(self.x), int(self.y)), BALL_R)
+        pygame.gfxdraw.filled_circle(screen, int(self.x), int(self.y), BALL_R, pygame.Color("#eb5e28"))
 
     def update(self):
-        # self.print_info()
+        global GAME_OVER
 
         # Bottom of the screen
 
         if self.y >= SCREEN_HEIGHT - BALL_R:
-            screen.blit(pygame.font.SysFont('arial', 30).render('Some Text', False, (255, 0, 0)), (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
+            GAME_OVER = 1
 
         # All other walls
 
@@ -102,19 +121,17 @@ class Ball(object):
 
         self.draw()
 
-    def print_info(self):
-        print("x: " + str(self.x), "\ny: " + str(self.y), "\nvx: " + str(self.vx), "\nvy: " + str(self.vy) + "\n" * 20)
-
 
 class Brick(object):
-    def __init__(self, x, y):
+    def __init__(self, x, y, type):
         self.x = x
         self.y = y
-        self.color = (random.randint(5, 255), random.randint(5, 255), random.randint(5, 255))
+        self.type = type
+        self.color = COLORS[type]
         self.rect = pygame.Rect(self.x, self.y, BRICK_W, BRICK_H)
 
     def draw(self):
-        pygame.draw.rect(screen, self.color, self.rect)
+        pygame.gfxdraw.box(screen, self.rect, self.color)
 
     def update(self):
 
@@ -149,7 +166,7 @@ pygame.display.update()
 
 for x in range(int(N_BRICK_W) + 1):
     for y in range(int(N_BRICK_H)):
-        brick_array.append(Brick(x * (BRICK_W + PADDING), y * (BRICK_H + PADDING)))
+        brick_array.append(Brick(x * (BRICK_W + PADDING), y * (BRICK_H + PADDING), SINGLE))
 
 
 # Game Loop
@@ -162,6 +179,8 @@ def move():
 
 
 while True:
+    screen.fill(0)
+
     for event in pygame.event.get():
         if event.type == KEYDOWN:
             if event.key == K_LEFT:
@@ -176,13 +195,17 @@ while True:
         elif event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-
-    move()
-
-    screen.fill(0)
-    paddle.draw()
-    ball.update()
-    for brick in brick_array:
-        brick.update()
+    if GAME_OVER:
+        font = pygame.font.SysFont('arial black', 55)
+        text = font.render("GAME OVER!", True, pygame.Color("RED"))
+        text_rect = text.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
+        screen.blit(text, text_rect)
+    else:
+        move()
+        paddle.draw()
+        ball.update()
+        for brick in brick_array:
+            brick.update()
 
     pygame.display.flip()
+    pygame.time.Clock().tick(60)
