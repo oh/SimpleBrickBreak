@@ -26,11 +26,13 @@ TRAIL = 3
 EXTRA_LIFE = 4
 
 COLORS = [
-    pygame.Color("#000814"),  # SOLID
-    pygame.Color("#9e2a2b"),  # SINGLE
-    pygame.Color("#540b0e"),  # DOUBLE
-    pygame.Color("#6d597a"),  # TRAIL
-    pygame.Color("#80b918")  # EXTRA_LIFE
+    pygame.Color("#272727"),  # 0 SOLID
+    pygame.Color("#28AFB0"),  # 1 SINGLE
+    pygame.Color("#A11692"),  # 2 DOUBLE
+    pygame.Color("#FF4F79"),  # 3 TRAIL / +1 BALL
+    pygame.Color("#5CF64A"),  # 4 EXTRA_LIFE
+    pygame.Color("#E4FF1A"),  # 5 BALL
+    pygame.Color("#F1FFE7")   # 6 PADDLE
 ]
 
 SCREEN_WIDTH = 400
@@ -61,7 +63,7 @@ class Paddle(object):
 
     def draw(self):
         self.rect = pygame.Rect(int(self.x), int(self.y), PADDLE_WIDTH, 10)
-        pygame.gfxdraw.box(screen, self.rect, pygame.Color("#bee9e8"))
+        pygame.gfxdraw.box(screen, self.rect, COLORS[6])
 
     def move(self, d):
         if d and self.x > 0:
@@ -78,7 +80,7 @@ class Ball(object):
         self.vy = 10 / SPEED
 
     def draw(self):
-        pygame.gfxdraw.filled_circle(screen, int(self.x), int(self.y), BALL_R, pygame.Color("#eb5e28"))
+        pygame.gfxdraw.filled_circle(screen, int(self.x), int(self.y), BALL_R, COLORS[5])
 
     def update(self):
         global GAME_OVER
@@ -140,6 +142,7 @@ class Brick(object):
         if self.rect.collidepoint(ball.x, ball.y - BALL_R) or self.rect.collidepoint(ball.x, ball.y + BALL_R):
             ball.vy *= -1
             brick_array.remove(self)
+            pass
         if self.rect.collidepoint(ball.x - BALL_R, ball.y) or self.rect.collidepoint(ball.x + BALL_R, ball.y):
             ball.vx *= -1
             brick_array.remove(self)
@@ -159,9 +162,6 @@ screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
 paddle = Paddle((SCREEN_WIDTH - PADDLE_WIDTH) / 2, SCREEN_HEIGHT - 50)
 ball = Ball(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
 brick_array = []
-font = pygame.font.SysFont('arial.ttf', 30)
-text = font.render('Some Text', False, (255, 0, 0))
-screen.blit(text, (0, 0))
 pygame.display.update()
 
 for x in range(int(N_BRICK_W) + 1):
@@ -179,8 +179,6 @@ def move():
 
 
 while True:
-    screen.fill(0)
-
     for event in pygame.event.get():
         if event.type == KEYDOWN:
             if event.key == K_LEFT:
@@ -195,6 +193,9 @@ while True:
         elif event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+
+    screen.fill(0)
+
     if GAME_OVER:
         font = pygame.font.SysFont('arial black', 55)
         text = font.render("GAME OVER!", True, pygame.Color("RED"))
